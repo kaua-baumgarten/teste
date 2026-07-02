@@ -127,7 +127,6 @@ def search_players(request):
         for p in data.get('player'):
             add_player_from_record(p)
 
-    # Se poucos resultados, tentar buscas adicionais por tokens do nome
     if len(players) <= 1 and q and ' ' in q:
         tokens = [t.strip() for t in q.split() if len(t.strip()) > 2]
         for token in tokens:
@@ -157,7 +156,6 @@ def save_player(request):
 
     data = request.POST or request.body
 
-    # aceitar tanto form-encoded quanto JSON
     nome = request.POST.get('nome') or None
     time = request.POST.get('clube') or request.POST.get('time') or None
     nacionalidade = request.POST.get('nacionalidade') or None

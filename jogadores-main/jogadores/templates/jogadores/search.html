@@ -55,7 +55,6 @@
         results.innerHTML = ''
         return
       }
-      // só buscar a partir de 2 caracteres
       if (q.length < 2) {
         results.innerHTML = '<p>Digite ao menos 2 caracteres...</p>'
         return
@@ -80,7 +79,6 @@
         return
       }
 
-      // Se houver mais de um jogador, mostrar opções para escolher
       if (players.length > 1) {
         results.innerHTML = '<p>Foram encontrados vários jogadores. Escolha um:</p>'
         const list = document.createElement('div')
@@ -99,7 +97,6 @@
         return
       }
 
-      // Se só um jogador, mostrar detalhes diretamente
       const p = players[0]
       results.innerHTML = ''
       const div = document.createElement('div')
@@ -139,7 +136,6 @@
       backBtn.textContent = 'Voltar'
       backBtn.style.marginLeft = '8px'
       backBtn.addEventListener('click', () => {
-        // re-executar busca atual
         form.dispatchEvent(new Event('submit'))
       })
       div.appendChild(backBtn)
@@ -159,7 +155,6 @@
         const res = await fetch('/guardar/', { method: 'POST', body: form })
         const json = await res.json()
         if (json.id) {
-          // adicionar à lista salva no DOM
           const saved = document.getElementById('saved')
           const div = document.createElement('div')
           div.className = 'player'
