@@ -1,0 +1,108 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Dream Team</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+</head>
+
+<body>
+   
+<h1>Dream Team</h1>
+
+<div class="overall-box">
+
+    Overall
+
+    <span id="overall">0</span>
+
+</div>
+
+<div class="campo">
+    <div class="area area-top"></div>
+    <div class="area area-bottom"></div>
+    <div class="linha">
+        <button class="posicao"
+        onclick="abrirModal('Attacker', this)">
+        ATA</button>
+    </div>
+
+    <div class="linha">
+
+        <button class="posicao"
+        onclick="abrirModal('Attacker', this)">
+        PE</button>
+
+        <button class="posicao"
+        onclick="abrirModal('Midfielder', this)">
+        MEI</button>
+
+        <button class="posicao"
+        onclick="abrirModal('Attacker', this)">
+        PD</button>
+
+    </div>
+
+    <div class="linha">
+
+        <button class="posicao"
+        onclick="abrirModal('Defender', this)">
+        DEF</button>
+
+        <button class="posicao"
+        onclick="abrirModal('Defender', this)">
+        DEF</button>
+
+    </div>
+
+    <div class="linha">
+
+        <button class="posicao"
+        onclick="abrirModal('Goalkeeper', this)">
+        GOL</button>
+
+    </div>
+
+</div>
+<div id="modal" class="modal">
+
+    <div class="modal-conteudo">
+
+        <h2>Escolher jogador</h2>
+
+        <input
+            type="text"
+            id="pesquisaModal"
+            placeholder="Digite o nome do jogador">
+
+        <button id="btnPesquisar">
+            Pesquisar
+        </button>
+
+        <div id="lista-jogadores"></div>
+
+
+        <button onclick="fecharModal()">
+            Fechar
+        </button>
+
+        <button onclick="limparTime()">
+             Limpar Time
+        </button>
+    </div>
+
+</div>
+
+<script src="{% static 'js/app.js' %}"></script>
+
+</body>
+
+
+</html>

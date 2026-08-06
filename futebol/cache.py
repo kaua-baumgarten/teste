@@ -1,0 +1,7 @@
+GOLEIROS = []
+
+DEFENSORES = []
+
+MEIAS = []
+
+ATACANTES = []
