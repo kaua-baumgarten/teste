@@ -101,4 +101,3 @@ O objetivo do projeto é oferecer uma aplicação simples para criação de um t
 
 **Augusto Castilho Cercato e Kauã Baumgarten**
 
-GitHub: https://github.com/Augusto08080
