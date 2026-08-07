@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Buscar Jogadores</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .player { border: 1px solid #ddd; padding: 10px; margin: 10px 0; display:flex; gap:10px; align-items:center }
+    .player img { width: 80px; height: 80px; object-fit:cover }
+    .player .info { display:flex; flex-direction:column }
+  </style>
+</head>
+<body>
+  <h1>Buscar Jogadores</h1>
+  <form id="searchForm">
+    <input id="q" name="q" placeholder="Nome do jogador" required>
+    <button type="submit">Buscar</button>
+  </form>
+
+  <div id="results"></div>
+  <h2>Jogadores salvos</h2>
+  <div id="saved">
+    {% for j in saved %}
+      <div class="player" data-id="{{ j.id }}">
+        <img src="{{ j.foto }}" alt="" style="width:60px;height:60px;object-fit:cover;margin-right:8px">
+        <div class="info">
+          <strong>{{ j.nome }}</strong>
+          <span>{{ j.posicao }} — {{ j.time }}</span>
+          <span>{{ j.nacionalidade }} — {% if j.idade %}{{ j.idade }} anos{% else %}idade não informada{% endif %}</span>
+        </div>
+        <button class="removeSaved" data-id="{{ j.id }}">Remover</button>
+      </div>
+    {% empty %}
+      <p>Nenhum jogador salvo.</p>
+    {% endfor %}
+  </div>
+
+  <script>
+    const form = document.getElementById('searchForm')
+    const results = document.getElementById('results')
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const q = document.getElementById('q').value.trim()
+      if (!q) return
+      await doSearch(q)
+    })
+
+    const input = document.getElementById('q')
+    let debounceTimer = null
+    input.addEventListener('input', () => {
+      const q = input.value.trim()
+      clearTimeout(debounceTimer)
+      if (!q) {
+        results.innerHTML = ''
+        return
+      }
+      if (q.length < 2) {
+        results.innerHTML = '<p>Digite ao menos 2 caracteres...</p>'
+        return
+      }
+      debounceTimer = setTimeout(() => doSearch(q), 300)
+    })
+
+    async function doSearch(q) {
+      results.innerHTML = 'Buscando...'
+      try {
+        const res = await fetch(`/api/players/?q=${encodeURIComponent(q)}`)
+        const json = await res.json()
+        render(json.players || [])
+      } catch (err) {
+        results.innerHTML = 'Erro ao buscar jogadores.'
+      }
+    }
+
+    function render(players) {
+      if (!players.length) {
+        results.innerHTML = '<p>Nenhum jogador encontrado.</p>'
+        return
+      }
+
+      if (players.length > 1) {
+        results.innerHTML = '<p>Foram encontrados vários jogadores. Escolha um:</p>'
+        const list = document.createElement('div')
+        players.forEach((p, idx) => {
+          const item = document.createElement('div')
+          item.style.padding = '6px 0'
+          item.innerHTML = `<strong>${p.nome || ''}</strong> — ${p.clube || ''} — ${p.nacionalidade || ''}`
+          const btn = document.createElement('button')
+          btn.textContent = 'Ver'
+          btn.style.marginLeft = '8px'
+          btn.addEventListener('click', () => showDetails(p))
+          item.appendChild(btn)
+          list.appendChild(item)
+        })
+        results.appendChild(list)
+        return
+      }
+
+      const p = players[0]
+      results.innerHTML = ''
+      const div = document.createElement('div')
+      div.className = 'player'
+      div.innerHTML = `
+        <img src="${p.foto || ''}" alt="">
+        <div class="info">
+          <strong>${p.nome || ''}</strong>
+          <span>${p.posicao || ''} — ${p.clube || ''}</span>
+          <span>${p.nacionalidade || ''} — ${p.idade ? p.idade + ' anos' : ''}</span>
+        </div>
+      `
+      const saveBtn = document.createElement('button')
+      saveBtn.textContent = 'Salvar'
+      saveBtn.addEventListener('click', () => savePlayer(p, div))
+      div.appendChild(saveBtn)
+      results.appendChild(div)
+    }
+
+    function showDetails(p) {
+      results.innerHTML = ''
+      const div = document.createElement('div')
+      div.className = 'player'
+      div.innerHTML = `
+        <img src="${p.foto || ''}" alt="">
+        <div class="info">
+          <strong>${p.nome || ''}</strong>
+          <span>${p.posicao || ''} — ${p.clube || ''}</span>
+          <span>${p.nacionalidade || ''} — ${p.idade ? p.idade + ' anos' : ''}</span>
+        </div>
+      `
+      const saveBtn = document.createElement('button')
+      saveBtn.textContent = 'Salvar'
+      saveBtn.addEventListener('click', () => savePlayer(p, div))
+      div.appendChild(saveBtn)
+      const backBtn = document.createElement('button')
+      backBtn.textContent = 'Voltar'
+      backBtn.style.marginLeft = '8px'
+      backBtn.addEventListener('click', () => {
+        form.dispatchEvent(new Event('submit'))
+      })
+      div.appendChild(backBtn)
+      results.appendChild(div)
+    }
+
+    async function savePlayer(p, node) {
+      try {
+        const form = new URLSearchParams()
+        form.append('nome', p.nome || '')
+        form.append('clube', p.clube || p.time || '')
+        form.append('nacionalidade', p.nacionalidade || '')
+        form.append('foto', p.foto || '')
+        form.append('idade', p.idade || '')
+        form.append('posicao', p.posicao || p.position || '')
+
+        const res = await fetch('/guardar/', { method: 'POST', body: form })
+        const json = await res.json()
+        if (json.id) {
+          const saved = document.getElementById('saved')
+          const div = document.createElement('div')
+          div.className = 'player'
+          div.dataset.id = json.id
+          div.innerHTML = `<div class="info"><strong>${json.nome}</strong><span>${p.clube || ''} — ${p.nacionalidade || ''}</span></div>`
+          const btn = document.createElement('button')
+          btn.className = 'removeSaved'
+          btn.textContent = 'Remover'
+          btn.dataset.id = json.id
+          btn.addEventListener('click', () => removeSaved(json.id, div))
+          div.appendChild(btn)
+          saved.appendChild(div)
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    async function removeSaved(id, node) {
+      try {
+        const res = await fetch(`/remover/${id}/`, { method: 'POST' })
+        const json = await res.json()
+        if (json.status === 'ok') {
+          node.remove()
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (e.target && e.target.classList.contains('removeSaved')) {
+        const id = e.target.dataset.id
+        const node = e.target.closest('.player')
+        removeSaved(id, node)
+      }
+    })
+  </script>
+</body>
+</html>
