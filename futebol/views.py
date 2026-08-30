@@ -10,7 +10,12 @@ def index(request):
 
 def buscar_jogador(request):
 
-    nome = request.GET.get("nome", "")
+    nome = request.GET.get("nome", "").strip()
+
+    if not nome:
+        return JsonResponse({
+            "jogadores": []
+        })
 
     jogadores = buscar_jogadores(nome)
 

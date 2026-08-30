@@ -19,9 +19,9 @@
 
 <div class="overall-box">
 
-    Overall
+    Média:
 
-    <span id="overall">0</span>
+    <span id="overall">0.0</span>
 
 </div>
 
@@ -73,9 +73,14 @@
 </div>
 <div id="modal" class="modal">
 
-    <div class="modal-conteudo">
+```
+<div class="modal-conteudo">
 
+    <div class="modal-header">
         <h2>Escolher jogador</h2>
+    </div>
+
+    <div class="pesquisa-box">
 
         <input
             type="text"
@@ -86,19 +91,27 @@
             Pesquisar
         </button>
 
-        <div id="lista-jogadores"></div>
+    </div>
 
+    <div id="lista-jogadores"></div>
 
-        <button onclick="fecharModal()">
+    <div class="modal-footer">
+
+        <button class="btn-limpar" onclick="limparTime()">
+            Limpar Time
+        </button>
+
+        <button class="btn-fechar-footer" onclick="fecharModal()">
             Fechar
         </button>
 
-        <button onclick="limparTime()">
-             Limpar Time
-        </button>
     </div>
 
 </div>
+
+
+</div>
+
 
 <script src="{% static 'js/app.js' %}"></script>
 

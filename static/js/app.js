@@ -1,22 +1,16 @@
 const modal = document.getElementById("modal");
-
 const lista = document.getElementById("lista-jogadores");
-
 const pesquisa = document.getElementById("pesquisaModal");
 
-let jogadoresAtuais = [];
-
-let jogadoresSelecionados = [];
-
 let botaoSelecionado = null;
-
 let timeEscolhido = [];
 
-let notasTime = [];
 
+// ==============================
+// ABRIR MODAL
+// ==============================
 
-//ABRIR MODAL
-function abrirModal(posicao, botao){
+function abrirModal(posicao, botao) {
 
     botaoSelecionado = botao;
 
@@ -24,171 +18,258 @@ function abrirModal(posicao, botao){
 
     pesquisa.value = "";
 
-   lista.innerHTML = "<p></p>";
-    
-};
+    lista.innerHTML = "";
+
+}
 
 
+// ==============================
+// FECHAR MODAL
+// ==============================
 
-//FECHAR MODAL
-function fecharModal(){
+function fecharModal() {
 
     modal.style.display = "none";
 
 }
 
 
-//ESCOLHER JOGADOR
-function escolherJogador(nome, clube, foto, nota){
+// ==============================
+// ESCOLHER JOGADOR
+// ==============================
 
-    botaoSelecionado.innerHTML = `
-        <img src="${foto}" class="foto-campo">
-        <br>
-        <br>
-        <div class="nome-jogador">${nome}</div>
+function escolherJogadorAPI(
+    nome,
+    clube,
+    foto,
+    gols,
+    jogos,
+    assistencias,
+    nota
+) {
 
-        <div class="clube-jogador">${clube}</div>
-
-        <div class="nota-jogador">Nota: ${nota}</div>
-
-    `;
-
-    timeEscolhido.push(nome);
-    notasTime.push(nota);
-
-    atualizarOverall();
-    fecharModal();
-
-}
-
-//ESCOLHER JOGADOR API
-function escolherJogadorAPI(nome, clube, foto, nota){
-
-    nota = parseFloat(nota);
-
-    if(isNaN(nota)){
-        nota = 75;
+    if (!botaoSelecionado) {
+        return;
     }
 
     botaoSelecionado.innerHTML = `
 
         <img src="${foto}" class="foto-campo">
 
-        <div class="nome-jogador">${nome}</div>
+        <div class="nome-jogador">
+            ${nome}
+        </div>
 
-        <div class="clube-jogador">${clube}</div>
+        <div class="clube-jogador">
+            ${clube || "Sem clube"}
+        </div>
 
-        <div class="nota-jogador">${nota.toFixed(1)}</div>
+        <div class="nota-jogador">
+            ⭐ ${nota || 0}/5
+        </div>
 
     `;
 
-    timeEscolhido.push(nome);
 
-    notasTime.push(nota);
+  timeEscolhido.push({
 
-    atualizarOverall();
+    nome: nome,
+
+    gols: Number(gols) || 0,
+
+    jogos: Number(jogos) || 0,
+
+    assistencias: Number(assistencias) || 0,
+
+    nota: Number(nota) || 0
+
+});
+
+atualizarMediaTime();
+
 
     fecharModal();
 
 }
 
-//LIMPAR
-function limparTime(){
 
-    jogadoresSelecionados = [];
+// ==============================
+// LIMPAR TIME
+// ==============================
 
-    document.querySelectorAll(".posicao").forEach(function(botao){
+function limparTime() {
 
-        if(botao.innerHTML === "Alisson" ||
-           botao.innerHTML === "Haaland" ||
-           botao.innerHTML === "Mbappé" ||
-           botao.innerHTML === "Salah"){
-
-            
-        }
-
-    });
+    timeEscolhido = [];
 
     location.reload();
 
 }
 
-//OVERALL
-function atualizarOverall(){
 
-    let soma = 0;
+// ==============================
+// PESQUISAR
+// ==============================
 
-    notasTime.forEach(function(nota){
-        soma += nota;
-    });
-
-    let media = Math.round(soma / notasTime.length);
-
-    document.getElementById("overall").innerHTML = media;
-
-}
-
-//async PESQUISAR API
-async function pesquisarAPI(nome){
+async function pesquisarAPI(nome) {
 
     nome = nome.trim();
 
-    if(nome.length < 2){
+    if (nome.length < 2) {
+
         lista.innerHTML = "";
+
         return;
     }
+
 
     lista.innerHTML = "<p>Pesquisando...</p>";
 
-    const resposta = await fetch("/buscar_jogador/?nome=" + nome);
 
-    const dados = await resposta.json();
+    try {
 
-    lista.innerHTML = "";
+        const resposta = await fetch(
+            "/buscar_jogador/?nome=" + encodeURIComponent(nome)
+        );
 
-    if(dados.jogadores.length === 0){
-        lista.innerHTML = "<p>Nenhum jogador encontrado.</p>";
-        return;
+
+        const dados = await resposta.json();
+
+
+        lista.innerHTML = "";
+
+
+        if (!dados.jogadores || dados.jogadores.length === 0) {
+
+            lista.innerHTML = "<p>Nenhum jogador encontrado.</p>";
+
+            return;
+        }
+
+
+        dados.jogadores.forEach(jogador => {
+
+
+            const card = document.createElement("div");
+
+            card.className = "jogador";
+
+
+            card.innerHTML = `
+
+                <img
+                    src="${jogador.foto}"
+                    class="foto-jogador"
+                >
+
+                <div class="info-jogador">
+
+                    <strong class="nome-jogador">
+                        ${jogador.nome}
+                    </strong>
+
+                    <span class="clube-jogador">
+                        ${jogador.time || "Sem clube"}
+                    </span>
+
+                    <span class="posicao-jogador">
+                        ${jogador.posicao || "Posição desconhecida"}
+                    </span>
+
+                    <span class="nota-jogador">
+                        ⭐ ${jogador.nota || 0}/5
+                    </span>
+
+                </div>
+
+            `;
+
+
+            card.addEventListener("click", function() {
+
+                escolherJogadorAPI(
+
+                    jogador.nome,
+
+                    jogador.time,
+
+                    jogador.foto,
+
+                    jogador.gols,
+
+                    jogador.jogos,
+
+                    jogador.assistencias,
+
+                    jogador.nota
+
+                );
+
+            });
+
+
+            lista.appendChild(card);
+
+        });
+
+
+    } catch (erro) {
+
+        console.error("ERRO:", erro);
+
+        lista.innerHTML = "<p>Erro ao pesquisar jogador.</p>";
+
     }
-
-    dados.jogadores.forEach(jogador=>{
-
-        lista.innerHTML += `
-            <div class="jogador"
-            onclick="escolherJogadorAPI(
-                '${jogador.nome}',
-                '${jogador.time}',
-                '${jogador.foto}',
-                '75'
-            )">
-
-                <img src="${jogador.foto}" width="60">
-
-                <strong>${jogador.nome}</strong><br>
-
-                ${jogador.time}<br>
-
-                ${jogador.posicao}
-
-            </div>
-        `;
-
-    });
 
 }
 
-document.getElementById("btnPesquisar").addEventListener("click", function(){
 
-    pesquisarAPI(pesquisa.value);
+// ==============================
+// BOTÃO PESQUISAR
+// ==============================
 
-});
+document
+    .getElementById("btnPesquisar")
+    .addEventListener("click", function() {
 
-pesquisa.addEventListener("keydown", function(event){
+        pesquisarAPI(pesquisa.value);
 
-    if(event.key === "Enter"){
+    });
+
+
+// ==============================
+// ENTER
+// ==============================
+
+pesquisa.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter") {
 
         pesquisarAPI(pesquisa.value);
 
     }
 
 });
+function atualizarMediaTime() {
+
+    const elemento = document.getElementById("overall");
+
+    if (timeEscolhido.length === 0) {
+
+        elemento.innerHTML = "0.0";
+
+        return;
+    }
+
+    let soma = 0;
+
+    timeEscolhido.forEach(function(jogador) {
+
+        soma += Number(jogador.nota) || 0;
+
+    });
+
+    const media = soma / timeEscolhido.length;
+
+    elemento.innerHTML = media.toFixed(1);
+
+}
